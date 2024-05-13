@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100;
+      margin: 2;
+    }
+
+    #visualization-container {
+      border: 4px solid #ccc; /* Add border */
+      padding: 20px; /* Add padding */
+      width: 100%; /* Occupy full width */
+    }
+    
+    svg {
+      background-color: #f7f7f7;
+      border: 1px solid #4f4d4d;
+    }
+
+    .link {
+      fill: none;
+      stroke-opacity: 0.6;
+      transition: stroke-width 0.3s; /* Smoother transition */
+    }
+
+    .node {
+      stroke-width: 2px;
+      cursor: pointer;
+      transition: r 0.3s; /* Smoother transition */
+    }
+
+    .label {
+      fill: #333;
+      font-family: Arial, sans-serif;
+      font-size: 14px; /* Increase font size */
+      text-anchor: middle; /* Center text horizontally */
+      vertical-align: top; /* Center text vertically */
+      transition: font-size 0.5s, opacity 0.5s; /* Smoother transition */
+    }
+
+    .button-container {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .button {
+      padding: 10px 20px; /* Increase padding */
+      margin: 2 5px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: #fff;
+      border: 2;
+      border-radius: 4px;
+      transition: background-color 0.3s; /* Add transition */
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="visualization-container"> <!-- Enclose SVG in a div -->
+    <svg width="100%" height="1000">
+      <defs>
+        <marker id="arrow" markerWidth="3" markerHeight="3" refX="3" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#999"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+  <div class="button-container">
+    <button class="button" id="start-button">Start</button>
+    <button class="button" id="end-button">End</button>
+  </div>
+
+  <script>
+    // Create the SVG container
+    const svg = d3.select("svg");
+
+    // function fetchData() {
+      let data = [];
+      fetch('/data')
+        .then(response => response.text())  
+        .then(fetchedData => {
+          data =JSON.parse(fetchedData); 
+          if (data) {
+            function updateVisualization() {
+              // Process the data
+              const nodes = data.map(d => ({ id: d.CANID, weight: d.count, color: d3.interpolateRainbow(d.count / 8) }));
+              const links = data.map((d, i) => ({ source: d.CANID, target: data[(i + 1) % data.length].CANID, count: d.count }));
+
+              // Define the simulation
+              const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(130)) // Increase distance between nodes
+                .force("charge", d3.forceManyBody().strength(-100)) // Increase repulsion force between nodes
+                .force("center", d3.forceCenter(200, 200));
+
+              // Update links
+              const link = svg.selectAll(".link")
+                .data(links)
+                .join("path")
+                .attr("class", "link")
+                .attr("stroke", "#999")
+                .attr("stroke-width", d => Math.sqrt(d.count))
+                .attr("marker-end", "url(#arrow)");
+
+              // Update nodes
+              const node = svg.selectAll(".node")
+                .data(nodes)
+                .join("circle")
+                .attr("class", "node")
+                .attr("r", d => Math.sqrt(d.weight) * 14) // Increase the multiplier for larger nodes
+                .attr("fill", d => d.color)
+                .call(drag(simulation)); // Enable drag behavior for nodes
+
+              // Add labels for nodes
+              const label = svg.selectAll(".label")
+                .data(nodes)
+                .join("text")
+                .attr("class", "label")
+                .text(d => d.id)
+                .attr("font-size", 16) // Increase font size
+                .attr("dx", 16) // Adjust x position
+                .attr("dy", 16); // Adjust y position
+
+              // Update positions of nodes and links
+              simulation.on("tick", () => {
+                link.attr("d", d => {
+                  const dx = d.target.x - d.source.x;
+                  const dy = d.target.y - d.source.y;
+                  const dr = Math.sqrt(dx * dx + dy * dy);
+                  return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+                });
+
+                node
+                  .attr("cx", d => d.x)
+                  .attr("cy", d => d.y);
+
+                label
+                  .attr("x", d => d.x)
+                  .attr("y", d => d.y);
+              });
+
+              console.log(data);
+
+              // Show pop-up for successful update
+            //  alert("Visualization updated successfully!");
+            }
+            function drag(simulation) {
+              function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+              }
+
+              function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+              }
+
+              function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+              }
+
+              return d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+            }
+
+            // Call the updateVisualization function to initialize the visualization
+            updateVisualization();
+
+            // Update the visualization every 3 seconds 
+            const intervalId = setInterval(() => {
+              // Randomly update count values for demonstration
+              // data.forEach(d => {
+              //   d.count = Math.floor(Math.random() * 8) + 1; // Random count value between 1 and 8
+              // });
+
+              // Call the updateVisualization function to update the visualization
+              updateVisualization();
+            }, 3000); 
+
+            // Add event listeners to buttons
+            document.getElementById('start-button').addEventListener('click', () => {
+              clearInterval(intervalId); // Stop the interval
+              updateVisualization(); // Update visualization immediately
+            });
+
+            document.getElementById('end-button').addEventListener('click', () => {
+              clearInterval(intervalId); // Stop the interval
+            });
+
+            // clearInterval(fetchInterval);
+        }
+        })
+        .catch(error => console.error(error))
+    // };
+
+    // const fetchInterval = setInterval(() => {
+    //   fetchData(); 
+    // }, 9000);
+
+</script>
+</body>
+</html>

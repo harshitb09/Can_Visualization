@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Visualization</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">  </head>
+<body>
+  <div id="visualization-container">
+
+  </div>
+
+  <script src="{{ url_for('static', filename='network_vis.html') }}"></script>
+
+  <script>
+    let data; // Declare variable to hold fetched data
+
+    // Fetch data from Flask route (assuming a route exists to provide data)
+    fetch('/data')
+      .then(response => response.text())  // Assuming data doesn't require JSON parsing
+      .then(fetchedData => {
+        data = fetchedData;
+        updateVisualization(data);  // Call update function from included file
+      })
+      .catch(error => console.error(error));
+  </script>
+</body>
+</html>
