@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      overflow-x: hidden;
+    }
+
+    *{
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    letter-spacing: 1px;
+    font-weight: 300;
+  }
+
+    #visualization-container {
+      border: 4px solid #ccc; /* Add border */
+      padding: 20px; /* Add padding */
+      width: 100%; /* Occupy full width */
+    }
+    
+    svg {
+      background-color: #f7f7f7;
+      border: 1px solid #4f4d4d;
+    }
+
+    .link {
+      fill: none;
+      stroke-opacity: 0.6;
+      transition: stroke-width 0.3s; /* Smoother transition */
+    }
+
+    .node {
+      stroke-width: 2px;
+      cursor: pointer;
+      transition: r 0.3s; /* Smoother transition */
+    }
+
+    .label {
+      fill: #333;
+      font-family: Arial, sans-serif;
+      font-size: 14px; /* Increase font size */
+      text-anchor: middle; /* Center text horizontally */
+      vertical-align: top; /* Center text vertically */
+      transition: font-size 0.5s, opacity 0.5s; /* Smoother transition */
+    }
+
+    .button-container {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .button {
+      padding: 10px 20px; /* Increase padding */
+      margin: 2 5px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: #fff;
+      border: 2;
+      border-radius: 4px;
+      transition: background-color 0.3s; /* Add transition */
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    nav{
+    height: 6rem;
+    width: 100vw;
+    background-color: #00274c;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    position: fixed;
+    z-index: 10;
+}
+
+/*Styling logo*/
+.logo{
+    padding:1vh 1vw;
+    text-align: center;
+}
+
+/*Styling Links*/
+.nav-links{
+    display: flex;
+    list-style: none; 
+    width: 88vw;
+    padding: 0 0.7vw;
+    justify-content: space-evenly;
+    align-items: center;
+    text-transform: uppercase;
+}
+.nav-links li a{
+    text-decoration: none;
+    margin: 0 0.7vw;
+    color: white;
+}
+.nav-links li a:hover {
+    color: #FFCB05;
+}
+.nav-links li {
+    position: relative;
+}
+.nav-links li a::before {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 0%;
+    position: absolute;
+    transition: all ease-in-out 250ms;
+    margin: 0 0 0 10%;
+}
+.nav-links li a:hover::before{
+    width: 80%;
+}
+
+/*Styling Buttons*/
+.login-button{
+    background-color: transparent;
+    border: 1.5px solid #f2f5f7;
+    border-radius: 2em;
+    padding: 0.6rem 0.8rem;
+    margin-left: 2vw;
+    font-size: 1rem;
+    cursor: pointer;
+    color: white
+}
+.login-button:hover a{
+    color: black;
+    background-color: #FFCB05;
+    border:1.5px solid #FFCB05;
+    transition: all ease-in-out 350ms;
+}
+.join-button{
+    background-color: transparent;
+    border: 1.5px solid #f2f5f7;
+    border-radius: 2em;
+    padding: 0.6rem 0.8rem;
+    margin-left: 2vw;
+    font-size: 1rem;
+    cursor: pointer;
+    color: white;
+}
+.join-button:hover a {
+    color: black;
+    background-color: #FFCB05;
+    border:1.5px solid #FFCB05;
+    transition: all ease-in-out 350ms;
+}
+
+/*Styling Hamburger Icon*/
+.hamburger div{
+    width: 30px;
+    height:3px;
+    background: #f2f5f7;
+    margin: 5px;
+    transition: all 0.3s ease;
+}
+.hamburger{
+    display: none;
+}
+
+/*Stying for small screens*/
+@media screen and (max-width: 800px){
+    nav{
+        position: fixed;
+        z-index: 3;
+    }
+    .hamburger{
+        display:block;
+        position: absolute;
+        cursor: pointer;
+        right: 5%;
+        top: 50%;
+        transform: translate(-5%, -50%);
+        z-index: 2;
+        transition: all 0.7s ease;
+    }
+    .nav-links{
+        position: fixed;
+        background: #00274c;
+        height: 100vh;
+        width: 100%;
+        flex-direction: column;
+        clip-path: circle(50px at 90% -20%);
+        -webkit-clip-path: circle(50px at 90% -10%);
+        transition: all 1s ease-out;
+        pointer-events: none;
+    }
+    .nav-links.open{
+        clip-path: circle(1000px at 90% -10%);
+        -webkit-clip-path: circle(1000px at 90% -10%);
+        pointer-events: all;
+    }
+    .nav-links li{
+        opacity: 0;
+    }
+    .nav-links li:nth-child(1){
+        transition: all 0.5s ease 0.2s;
+    }
+    .nav-links li:nth-child(2){
+        transition: all 0.5s ease 0.4s;
+    }
+    .nav-links li:nth-child(3){
+        transition: all 0.5s ease 0.6s;
+    }
+    .nav-links li:nth-child(4){
+        transition: all 0.5s ease 0.7s;
+    }
+    .nav-links li:nth-child(5){
+        transition: all 0.5s ease 0.8s;
+    }
+    .nav-links li:nth-child(6){
+        transition: all 0.5s ease 0.9s;
+        margin: 0;
+    }
+    .nav-links li:nth-child(7){
+        transition: all 0.5s ease 1s;
+        margin: 0;
+    }
+    li.fade{
+        opacity: 1;
+    }
+}
+/*Animating Hamburger Icon on Click*/
+.toggle .line1{
+    transform: rotate(-45deg) translate(-5px,6px);
+}
+.toggle .line2{
+    transition: all 0.7s ease;
+    width:0;
+}
+.toggle .line3{
+    transform: rotate(45deg) translate(-5px,-6px);
+}
+
+
+/* Container and Sections */
+.container {
+    margin-top: 7rem; /* Adjust to prevent overlap with fixed navbar */
+    padding: 2rem;
+}
+
+.container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    color: #00274c;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.section {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.section.odd .text, .section.even .media {
+    order: 1;
+}
+
+.section.odd .media, .section.even .text {
+    order: 2;
+}
+
+.text, .media {
+    flex: 1 1 50%;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f2f5f7;
+    color: #00274c;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1.5;
+}
+
+.media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+}
+
+.media img, .media video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 800px) {
+    .section {
+        flex-direction: column;
+    }
+
+    .text, .media {
+        flex: 1 1 100%;
+        order: initial !important;
+    }
+}
+  </style>
+</head>
+<body>
+
+  <div>
+    <nav>
+        <div class="logo">
+            <a href="/"></a><img src="../static/media/issf_logo_no_bg (1).png" alt="Logo Image">
+        </div>
+        <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="https://issf.umd.umich.edu/home" target="_blank">ISSF Website</a></li>
+            <li><a href="https://forms.gle/cnP6NHY8fqGXRDfX6" target="_blank">Inquiry Form</a></li>
+            <li><a button class="join-button" href="{{ url_for('auth.logout') }}">Log Out</button></a></li>
+        </ul>
+    </nav>
+</div>
+
+  <center>
+  <div id="visualization-container"> <!-- Enclose SVG in a div -->
+    <br><br><br><br><br>
+    <svg width="80%" height="550">
+      <defs>
+        <marker id="arrow" markerWidth="3" markerHeight="3" refX="3" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#999"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+  <div class="button-container">
+    <button class="button" id="start-button">Start</button>
+    <button class="button" id="end-button">End</button>
+  </div>
+</center>
+  <script>
+    // Create the SVG container
+    const svg = d3.select("svg");
+
+    // function fetchData() {
+      let data = [];
+      fetch('/data')
+        .then(response => response.text())  
+        .then(fetchedData => {
+          data =JSON.parse(fetchedData); 
+          if (data) {
+            function updateVisualization() {
+              // Process the data
+              const nodes = data.map(d => ({ id: d.CANID, weight: d.count, color: d3.interpolateRainbow(d.count / 8) }));
+              const links = data.map((d, i) => ({ source: d.CANID, target: data[(i + 1) % data.length].CANID, count: d.count }));
+
+              // Define the simulation
+              const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(130)) // Increase distance between nodes
+                .force("charge", d3.forceManyBody().strength(-100)) // Increase repulsion force between nodes
+                .force("center", d3.forceCenter(200, 200));
+
+              // Update links
+              const link = svg.selectAll(".link")
+                .data(links)
+                .join("path")
+                .attr("class", "link")
+                .attr("stroke", "#999")
+                .attr("stroke-width", d => Math.sqrt(d.count))
+                .attr("marker-end", "url(#arrow)");
+
+              // Update nodes
+              const node = svg.selectAll(".node")
+                .data(nodes)
+                .join("circle")
+                .attr("class", "node")
+                .attr("r", d => Math.sqrt(d.weight) * 14) // Increase the multiplier for larger nodes
+                .attr("fill", d => d.color)
+                .call(drag(simulation)); // Enable drag behavior for nodes
+
+              // Add labels for nodes
+              const label = svg.selectAll(".label")
+                .data(nodes)
+                .join("text")
+                .attr("class", "label")
+                .text(d => d.id)
+                .attr("font-size", 16) // Increase font size
+                .attr("dx", 16) // Adjust x position
+                .attr("dy", 16); // Adjust y position
+
+              // Update positions of nodes and links
+              simulation.on("tick", () => {
+                link.attr("d", d => {
+                  const dx = d.target.x - d.source.x;
+                  const dy = d.target.y - d.source.y;
+                  const dr = Math.sqrt(dx * dx + dy * dy);
+                  return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+                });
+
+                node
+                  .attr("cx", d => d.x)
+                  .attr("cy", d => d.y);
+
+                label
+                  .attr("x", d => d.x)
+                  .attr("y", d => d.y);
+              });
+
+              console.log(data);
+
+              // Show pop-up for successful update
+            //  alert("Visualization updated successfully!");
+            }
+            function drag(simulation) {
+              function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+              }
+
+              function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+              }
+
+              function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+              }
+
+              return d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+            }
+
+            // Call the updateVisualization function to initialize the visualization
+            updateVisualization();
+
+            // Update the visualization every 3 seconds 
+            const intervalId = setInterval(() => {
+              // Randomly update count values for demonstration
+              // data.forEach(d => {
+              //   d.count = Math.floor(Math.random() * 8) + 1; // Random count value between 1 and 8
+              // });
+
+              // Call the updateVisualization function to update the visualization
+              updateVisualization();
+            }, 3000); 
+
+            // Add event listeners to buttons
+            document.getElementById('start-button').addEventListener('click', () => {
+              clearInterval(intervalId); // Stop the interval
+              updateVisualization(); // Update visualization immediately
+            });
+
+            document.getElementById('end-button').addEventListener('click', () => {
+              clearInterval(intervalId); // Stop the interval
+            });
+
+            // clearInterval(fetchInterval);
+        }
+        })
+        .catch(error => console.error(error))
+    // };
+
+    // const fetchInterval = setInterval(() => {
+    //   fetchData(); 
+    // }, 9000);
+
+    const hamburger = document.querySelector(".hamburger");
+    const navLinks = document.querySelector(".nav-links");
+    const links = document.querySelectorAll(".nav-links li");
+
+    hamburger.addEventListener('click', ()=>{
+      //Animate Links
+        navLinks.classList.toggle("open");
+        links.forEach(link => {
+            link.classList.toggle("fade");
+        });
+
+        //Hamburger Animation
+        hamburger.classList.toggle("toggle");
+    });
+
+</script>
+</body>
+</html>
