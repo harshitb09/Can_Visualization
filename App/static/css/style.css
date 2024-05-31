@@ -314,4 +314,49 @@ nav{
     background-color: #FFCB05;
     color: black;
 }
+.footer {
+    background-color: #FFCB05;
+    color: black;
+    text-align: center;
+    
+}
+.footer .section {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+.footer .section div {
+    margin: 0 20px;
+}
+.footer .section div span {
+    display: block;
+}
+.footer .section div span a{
+    display: block;
+    color: black;
+}
+.footer .bottom-bar {
+    background-color: #00274c;
+    padding: 10px 0;
+    color: white;
+}
+.footer .section ul {
+    list-style: none;
+    padding: 0;
+}
 
+.footer .section ul li {
+    margin-bottom: 10px;
+    ;
+}
+
+.footer .section ul li a {
+    text-decoration: none;
+    color: black
+}
+
+.footer .section ul li a:hover {
+    color: white;
+    background-color: #00274C;
+    transition: all ease-in-out 350ms;
+}
