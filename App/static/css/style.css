@@ -253,30 +253,14 @@ nav{
     }
 }
 
-.signup-container {
-    position: sticky;
-    top: 50%;
-    left: 50%;
-    margin-top: 25%;
-    margin-bottom: -2%;
-    transform: translate(-50%, -50%);
-    width: 300px; 
-    background: #f2f5f7;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-}
-
 
 /* Centering the login container */
 .login-container {
-    position: sticky;
+    position: absolute;
     top: 50%;
     left: 50%;
-    margin-top: 5%;
-    margin-bottom: 9%;
     transform: translate(-50%, -50%);
-    width: 300px; 
+    width: 300px; /* Adjust as needed */
     background: #f2f5f7;
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
