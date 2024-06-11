@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAN Visualization</title>
+  <style>
+    .input-section,
+    .visualization-section,
+    .slider-container {
+      max-width: 960px;
+      margin: 10px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+
+    button {
+      padding: 10px;
+      margin: 5px;
+    }
+
+    svg {
+      width: 100%;
+      height: 600px;
+      background-color: #f7f7f7;
+      border: 1px solid #4f4d4d;
+    }
+
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+
+    .node {
+      stroke-width: 2px;
+      stroke: #fff;
+    }
+
+    .label {
+      fill: #555;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+    }
+
+    /* Add your additional styling */
+  </style>
+</head>
+<body>
+  <div class="input-section">
+    <textarea id="canIds" placeholder="Enter CAN JSON data here"></textarea>
+    <button id="convertButton">Convert</button>
+    <button id="clearButton">Clear Input</button>
+  </div>
+  <div class="visualization-section">
+    <svg id="graph"></svg>
+  </div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    document.getElementById('convertButton').addEventListener('click', convertToGraph);
+    document.getElementById('clearButton').addEventListener('click', clearInput);
+
+    function convertToGraph() {
+      const rawData = document.getElementById('canIds').value.trim();
+      try {
+        const canData = JSON.parse("[" + rawData.replaceAll("'", "\"") + "]");
+        visualizeNetwork(canData);
+      } catch (error) {
+        alert("Invalid input format. Please check the data and try again.");
+      }
+    }
+
+    function clearInput() {
+      document.getElementById('canIds').value = '';
+      d3.select('#graph').selectAll('*').remove();
+    }
+
+    function visualizeNetwork(data) {
+      const nodes = data.map(d => ({ id: d.CANID }));
+      const links = data.map((d, i) => ({ source: d.CANID, target: data[(i + 1) % data.length].CANID }));
+
+      const svg = d3.select("#graph")
+        .attr("viewBox", [-300, -300, 600, 600]);
+      
+      const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id))
+        .force("charge", d3.forceManyBody())
+        .force("center", d3.forceCenter());
+
+      svg.append("g")
+        .selectAll("line")
+        .data(links)
+        .join("line")
+        .classed("link", true);
+
+      const node = svg.append("g")
+        .selectAll("circle")
+        .data(nodes)
+        .join("circle")
+        .classed("node", true)
+        .attr("r", 20);
+      
+      svg.append("g")
+        .attr("fill", "#555")
+        .attr("cursor", "grab")
+        .selectAll("text")
+        .data(nodes)
+        .join("text")
+        .text(d => d.id);
+
+      simulation.on("tick", () => {
+        node
+          .attr("cx", d => d.x)
+          .attr("cy", d => d.y);
+
+        svg.selectAll(".link")
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+
+        svg.selectAll("text")
+          .attr("x", d => d.x)
+          .attr("y", d => d.y);
+      });
+    }
+  </script>  
+</body>
+</html>
